@@ -17,3 +17,6 @@
 
 ### PHPUnit ###
 .phpunit.result.cache
+
+### Docker
+.docker/data/*
