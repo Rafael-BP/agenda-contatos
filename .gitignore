@@ -11,12 +11,26 @@
 
 ### PHPStorm ###
 /.idea/
+### PHPStorm ###
 
 ### Env ###
 /.env
+### Env ###
 
 ### PHPUnit ###
 .phpunit.result.cache
+### PHPUnit ###
 
-### Docker
+### Docker ###
 .docker/data/*
+### Docker ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+### Logs ###
+/logs/
+/tests-coverage/
+### Logs ###

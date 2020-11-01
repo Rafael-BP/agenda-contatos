@@ -54,10 +54,12 @@ class Contato
 
     /**
      * Contato constructor.
+     * @param $nome string
      */
-    public function __construct()
+    public function __construct(string $nome)
     {
         $this->telefones = new ArrayCollection();
+        $this->setNome($nome);
     }
 
     /**

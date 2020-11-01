@@ -61,13 +61,10 @@ class ContatoController extends DefaultController
             throw new ContatoDeveTerPeloMenosUmTelefoneException();
         }
 
-        $contato = new Contato();
-        $contato->setNome($parameters['nome']);
+        $contato = new Contato($parameters['nome']);
         $contato->setEmail($parameters['email']);
         foreach ($telefones as $tel) {
-            $telefone = new Telefone();
-            $telefone->setNumero($tel['numero']);
-            $telefone->setContato($contato);
+            $telefone = new Telefone($tel['numero'], $contato);
             $contato->adicionarTelefone($telefone);
         }
 
@@ -115,9 +112,7 @@ class ContatoController extends DefaultController
         }
         $contato->setTelefones(new ArrayCollection());
         foreach ($telefones as $tel) {
-            $telefone = new Telefone();
-            $telefone->setNumero($tel['numero']);
-            $telefone->setContato($contato);
+            $telefone = new Telefone($tel['numero'], $contato);
             $contato->adicionarTelefone($telefone);
         }
 

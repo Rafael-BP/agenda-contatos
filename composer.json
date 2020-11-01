@@ -24,6 +24,9 @@
         "symfony/yaml": "4.4.*"
     },
     "require-dev": {
+        "fzaninotto/faker": "^1.9",
+        "pcov/clobber": "^2.0",
+        "phpunit/phpunit": "^8.5",
         "symfony/maker-bundle": "^1.22"
     },
     "config": {

@@ -8,6 +8,7 @@ RUN apt-get update \
     sudo
 
 RUN docker-php-ext-install pdo pdo_mysql zip
+RUN pecl install pcov && docker-php-ext-enable pcov
 
 COPY php.ini /usr/local/etc/php/php.ini
 COPY php-fpm-pool.conf 	/usr/local/etc/php/pool.d/www.conf

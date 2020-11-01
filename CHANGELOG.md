@@ -9,3 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - API básica de Agenda de Contatos em SF4
 - Postman collection
+- Readme com requisitos e rollout
+- Estrutura de global exceptions com event listener
+- Testes
+- Ambiente dockerizado

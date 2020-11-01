@@ -28,9 +28,9 @@ class Telefone
     private $id;
 
     /**
-     * @var string|null
+     * @var string
      *
-     * @ORM\Column(name="numero", type="string", length=30, nullable=true)
+     * @ORM\Column(name="numero", type="string", length=30, nullable=false)
      */
     private $numero;
 
@@ -45,6 +45,17 @@ class Telefone
     private $contato;
 
     /**
+     * Telefone constructor.
+     * @param $numero string
+     * @param $contato Contato
+     */
+    public function __construct(string $numero, Contato $contato)
+    {
+        $this->setNumero($numero);
+        $this->setContato($contato);
+    }
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -53,18 +64,19 @@ class Telefone
     }
 
     /**
-     * @return string|null
+     * @return string
+     * @
      */
-    public function getNumero(): ?string
+    public function getNumero(): string
     {
         return $this->numero;
     }
 
     /**
-     * @param string|null $numero
+     * @param string $numero
      * @return $this
      */
-    public function setNumero(?string $numero): self
+    public function setNumero(string $numero): self
     {
         $validator = Validation::createValidator();
         $violations = $validator->validate($numero, [

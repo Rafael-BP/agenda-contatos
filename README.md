@@ -15,7 +15,7 @@ docker-compose build
 docker-compose up
 ```
 
-Acesse a docker
+Acesse a docker e navegue até a raiz do projeto (/home/wwwroot/sf4)
 ```
 docker exec -it sf4_php bash
 ```
@@ -32,14 +32,14 @@ php bin/console doctrine:schema:update --force
 
 ## Rodando os Testes
 
-Acesse a docker
+Acesse a docker e navegue até a raiz do projeto (/home/wwwroot/sf4)
 ```
 docker exec -it sf4_php bash
 ```
 
 Rode os testes
 ```
-
+php vendor/bin/phpunit --colors --coverage-html tests-coverage
 ```
 
 ## Especificação
