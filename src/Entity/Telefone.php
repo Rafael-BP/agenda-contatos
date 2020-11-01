@@ -73,7 +73,7 @@ class Telefone
         ]);
 
         if (0 !== count($violations)) {
-            throw new TelefoneInvalidoException("Telefone inválido.", Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw new TelefoneInvalidoException();
         }
 
         $this->numero = $numero;

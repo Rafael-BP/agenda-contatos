@@ -6,35 +6,39 @@ use App\Entity\Contato;
 use App\Entity\Telefone;
 use App\Exception\ContatoDeveTerPeloMenosUmTelefoneException;
 use App\Exception\ContatoJaExisteException;
-use App\Exception\EmailInvalidoException;
-use App\Exception\NomeInvalidoException;
 use App\Form\ContatoType;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 
 /**
  * @Route("/contato")
  */
-class ContatoController extends AbstractController
+class ContatoController extends DefaultController
 {
     /**
      * @Route("/", name="contato_lista", methods={"GET"})
      */
-    public function listar(): Response
+    public function listar(PaginatorInterface $paginator, Request $request): Response
     {
+        $orderBy = $request->get('orderBy') ? $request->get('orderBy') : 'nome';
+        $orderMethod = $request->get('orderMethod') ? $request->get('orderMethod') : 'ASC';
         $contatos = $this->getDoctrine()
             ->getRepository(Contato::class)
-            ->findAll();
-        $serializer = new Serializer([new ObjectNormalizer()], [new JsonEncoder()]);
+            ->findBy(
+                [],
+                [$orderBy => $orderMethod]
+            );
 
-        return new Response($serializer->serialize($contatos, 'json'), Response::HTTP_OK);
+        $pagination = $paginator->paginate(
+            $contatos,
+            $request->query->getInt('page',$_SERVER['PAGE_DEFAULT']),
+            $request->query->getInt('limit',$_SERVER['LIMIT_DEFAULT'])
+        );
+
+        return new Response($this->serializer->serialize($pagination, 'json'), Response::HTTP_OK);
     }
 
     /**
@@ -42,39 +46,35 @@ class ContatoController extends AbstractController
      */
     public function novo(Request $request): Response
     {
-        try {
-            $em = $this->getDoctrine()->getManager();
-            $parameters = json_decode($request->getContent(), true);
+        $em = $this->getDoctrine()->getManager();
+        $parameters = json_decode($request->getContent(), true);
 
-            $contatoExiste = $this->getDoctrine()
-                ->getRepository(Contato::class)
-                ->findBy(['nome' => $parameters['nome']]);
-            if($contatoExiste) {
-                throw new ContatoJaExisteException("Contato já existe.", Response::HTTP_PRECONDITION_FAILED);
-            }
-
-            $telefones = $parameters['telefones'];
-            if(empty($telefones)) {
-                throw new ContatoDeveTerPeloMenosUmTelefoneException("Contato deve ter pelo menos um telefone.", Response::HTTP_PRECONDITION_FAILED);
-            }
-
-            $contato = new Contato();
-            $contato->setNome($parameters['nome']);
-            $contato->setEmail($parameters['email']);
-            foreach ($telefones as $tel) {
-                $telefone = new Telefone();
-                $telefone->setNumero($tel['numero']);
-                $telefone->setContato($contato);
-                $contato->adicionarTelefone($telefone);
-            }
-
-            $em->persist($contato);
-            $em->flush();
-
-            return new Response("Contato criado com sucesso.", Response::HTTP_CREATED);
-        } catch(\Throwable $e) {
-            return new Response($e->getMessage(), $e->getCode());
+        $contatoExiste = $this->getDoctrine()
+            ->getRepository(Contato::class)
+            ->findBy(['nome' => $parameters['nome']]);
+        if($contatoExiste) {
+            throw new ContatoJaExisteException();
         }
+
+        $telefones = $parameters['telefones'];
+        if(empty($telefones)) {
+            throw new ContatoDeveTerPeloMenosUmTelefoneException();
+        }
+
+        $contato = new Contato();
+        $contato->setNome($parameters['nome']);
+        $contato->setEmail($parameters['email']);
+        foreach ($telefones as $tel) {
+            $telefone = new Telefone();
+            $telefone->setNumero($tel['numero']);
+            $telefone->setContato($contato);
+            $contato->adicionarTelefone($telefone);
+        }
+
+        $em->persist($contato);
+        $em->flush();
+
+        return new Response("Contato criado com sucesso.", Response::HTTP_CREATED);
     }
 
     /**
@@ -82,8 +82,7 @@ class ContatoController extends AbstractController
      */
     public function obterUm(Contato $contato): Response
     {
-        $serializer = new Serializer([new ObjectNormalizer()], [new JsonEncoder()]);
-        return new Response($serializer->serialize($contato, 'json'), Response::HTTP_OK);
+        return new Response($this->serializer->serialize($contato, 'json'), Response::HTTP_OK);
     }
 
     /**
@@ -91,45 +90,41 @@ class ContatoController extends AbstractController
      */
     public function editar(Request $request, Contato $contato): Response
     {
-        try {
-            $em = $this->getDoctrine()->getManager();
-            $parameters = json_decode($request->getContent(), true);
+        $em = $this->getDoctrine()->getManager();
+        $parameters = json_decode($request->getContent(), true);
 
-            $contatoExiste = $this->getDoctrine()
-                ->getRepository(Contato::class)
-                ->findBy(['nome' => $parameters['nome']]);
-            if(
-                $contatoExiste &&
-                $parameters['nome'] != $contato->getNome()
-            ) {
-                throw new ContatoJaExisteException("Contato já existe.", Response::HTTP_PRECONDITION_FAILED);
-            }
-
-            $telefones = $parameters['telefones'];
-            if(empty($telefones)) {
-                throw new ContatoDeveTerPeloMenosUmTelefoneException("Contato deve ter pelo menos um telefone.", Response::HTTP_PRECONDITION_FAILED);
-            }
-
-            $contato->setNome($parameters['nome']);
-            $contato->setEmail($parameters['email']);
-            foreach ($contato->getTelefones() as $tel) {
-                $em->remove($tel);
-            }
-            $contato->setTelefones(new ArrayCollection());
-            foreach ($telefones as $tel) {
-                $telefone = new Telefone();
-                $telefone->setNumero($tel['numero']);
-                $telefone->setContato($contato);
-                $contato->adicionarTelefone($telefone);
-            }
-
-            $em->persist($contato);
-            $em->flush();
-
-            return new Response("Contato atualizado com sucesso.", Response::HTTP_OK);
-        } catch(\Throwable $e) {
-            return new Response($e->getMessage(), $e->getCode());
+        $contatoExiste = $this->getDoctrine()
+            ->getRepository(Contato::class)
+            ->findBy(['nome' => $parameters['nome']]);
+        if(
+            $contatoExiste &&
+            $parameters['nome'] != $contato->getNome()
+        ) {
+            throw new ContatoJaExisteException();
         }
+
+        $telefones = $parameters['telefones'];
+        if(empty($telefones)) {
+            throw new ContatoDeveTerPeloMenosUmTelefoneException();
+        }
+
+        $contato->setNome($parameters['nome']);
+        $contato->setEmail($parameters['email']);
+        foreach ($contato->getTelefones() as $tel) {
+            $em->remove($tel);
+        }
+        $contato->setTelefones(new ArrayCollection());
+        foreach ($telefones as $tel) {
+            $telefone = new Telefone();
+            $telefone->setNumero($tel['numero']);
+            $telefone->setContato($contato);
+            $contato->adicionarTelefone($telefone);
+        }
+
+        $em->persist($contato);
+        $em->flush();
+
+        return new Response("Contato atualizado com sucesso.", Response::HTTP_OK);
     }
 
     /**

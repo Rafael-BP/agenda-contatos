@@ -89,7 +89,7 @@ class Contato
         ]);
 
         if (0 !== count($violations)) {
-            throw new NomeInvalidoException("Nome inválido.", Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw new NomeInvalidoException();
         }
 
         $this->nome = $nome;
@@ -118,7 +118,7 @@ class Contato
         ]);
 
         if (0 !== count($violations)) {
-            throw new EmailInvalidoException("Email inválido.", Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw new EmailInvalidoException();
         }
         
         $this->email = $email;
@@ -134,7 +134,7 @@ class Contato
     {
         foreach($this->getTelefones() as $tel) {
             if($tel->getNumero() == $telefone->getNumero()) {
-                throw new TelefoneDuplicadoException("Telefone duplicado.", Response::HTTP_PRECONDITION_FAILED);
+                throw new TelefoneDuplicadoException();
             }
         }
         $this->telefones->add($telefone);

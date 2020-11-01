@@ -17,19 +17,24 @@ docker-compose up
 
 Acesse a docker
 ```
+docker exec -it sf4_php bash
+```
 
+Rode o composer
+```
+composer update
 ```
 
 Gere o banco de dados a partir das nossas entidades
 ```
-
+php bin/console doctrine:schema:update --force
 ```
 
 ## Rodando os Testes
 
 Acesse a docker
 ```
-
+docker exec -it sf4_php bash
 ```
 
 Rode os testes
